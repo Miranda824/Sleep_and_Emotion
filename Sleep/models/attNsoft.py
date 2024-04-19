@@ -250,23 +250,15 @@ class Multi_Scale_ResNet(nn.Module):
 
     def forward(self, x):
         # x = self.pre_conv(x)
-        all_dict = {}
         x1 = self.Route1(x)
-        all_dict['Route1(x)'] = x
         x2 = self.Route2(x)
-        all_dict['Route2(x)'] = x
         x3 = self.Route3(x)
-        all_dict['Route3(x)'] = x
         x = torch.cat((x1,x2,x3), 1)
-        all_dict['(x1,x2,x3), 1'] = x
         x = self.conv1(x)
-        all_dict['conv(x)'] = x
         x = self.route(x)
-        all_dict['attn(x)'] = x
         x = self.avgpool(x)
         x = x.view(x.size(0), -1)
         x = self.fc(x)
-        all_dict['fc(x)'] = x
         return x
 
 
