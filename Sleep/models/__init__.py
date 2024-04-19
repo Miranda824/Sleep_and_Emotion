@@ -1,0 +1,2 @@
+def deepsleepnet():
+    return net
