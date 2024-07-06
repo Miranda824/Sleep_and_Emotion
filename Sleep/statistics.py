@@ -1,13 +1,14 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import util
-
-def stage(stages):	
+import torch
+from torch import nn
+def stage(stages):
     #N3->0  N2->1  N1->2  REM->3  W->4
     stage_cnt=np.array([0,0,0,0,0])
     for i in range(len(stages)):
         stage_cnt[stages[i]] += 1
-    stage_cnt_per = stage_cnt/len(stages) 
+    stage_cnt_per = stage_cnt/len(stages)
     util.writelog('statistics of dataset [S3 S2 S1 R W]: '+str(stage_cnt),True)
     return stage_cnt,stage_cnt_per
 
@@ -59,6 +60,8 @@ def Kappa(mat):
     return k
 
 def result(mat,print_sub=False):
+    if isinstance(mat, torch.Tensor):
+        mat = mat.cpu().numpy()  # 确保 mat 是一个 NumPy 数组
     wide=mat.shape[0]
     sub_acc = np.zeros(wide)
     sub_recall = np.zeros(wide)
@@ -72,7 +75,7 @@ def result(mat,print_sub=False):
 
         err += mat[i,i]
         sub_acc[i]=(TP+TN)/(TP+FN+TN+FP)
-        sub_recall[i]=(TP)/np.clip((TP+FN), 1e-5, 1e10) 
+        sub_recall[i]=(TP)/np.clip((TP+FN), 1e-5, 1e10)
         sub_sp[i] = TN/np.clip((TN+FP), 1e-5, 1e10)
     if print_sub == True:
         print('sub_recall:',sub_recall,'\nsub_acc:',sub_acc,'\nsub_sp:',sub_sp)
@@ -121,4 +124,3 @@ def main():
     print(avg_recall,avg_acc,err)
 if __name__ == '__main__':
     main()
-
