@@ -23,7 +23,8 @@ if hasattr(torch.cuda, 'empty_cache'):
     torch.cuda.empty_cache()
 # 设置可见的GPU设备
 # os.environ["CUDA_VISIBLE_DEVICES"] = "0,1,2"  # 设置可见的GPU设备编号
-emotion_model = load_model('/home/ti80/Documents/github/Sleep and Emotion/Sleep/emo_model/emotion_re_15surprise.h5')
+#emotion_model = load_model('F:/sleep/Sleep/emo_model/emotion_re_15surprise.h5')
+emotion_model = load_model('F:/sleep/Sleep/emo_model/emotion_re_15surprise.h5', compile=False)
 
 
 
@@ -93,7 +94,10 @@ if not opt.no_cuda:
 if not opt.no_cudnn:
     torch.backends.cudnn.benchmark = True
 
+#optimizer = torch.optim.Adam(net.parameters(), lr=opt.lr)
 optimizer = torch.optim.Adam(net.parameters(), lr=opt.lr)
+
+
 # scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.8)
 criterion = nn.CrossEntropyLoss(weight)
 # 将模型移动到主设备
@@ -137,8 +141,8 @@ def evalnet(net, signals, stages, sequences, epoch, plot, plot_result={}, save_f
         #     data_out = pd.DataFrame(out_excel)
         #     data_stage = pd.DataFrame(stage_excel)
         #     writer = pd.ExcelWriter('EXCEL/'+opt.model_name+'.xlsx')
-        #     data_out.to_excel(writer, 'y_score', float_format='%.5f')  
-        #     data_stage.to_excel(writer, 'y_stage', float_format='%.5f')  
+        #     data_out.to_excel(writer, 'y_score', float_format='%.5f')
+        #     data_stage.to_excel(writer, 'y_stage', float_format='%.5f')
         #     writer.save()
 
         #     writer.close()
@@ -161,11 +165,13 @@ def evalnet(net, signals, stages, sequences, epoch, plot, plot_result={}, save_f
 
     # Save evaluation results to a text file
     if save_file:
-        with open(save_file, 'w') as f:
-            for key, value in evaluation_results.items():
-                f.write(f'{key}: {value}\n')
-        print(f"Evaluation results saved to {save_file}")
+         with open(save_file, 'w') as f:
+             for key, value in evaluation_results.items():
+                 f.write(f'{key}: {value}\n')
+         print(f"Evaluation results saved to {save_file}")
     return plot_result, confusion_mat
+
+
 # Define the file path to save the evaluation results
 save_file = 'evaluation_results.txt'
 
@@ -228,10 +234,10 @@ for fold in range(opt.fold_num):
             loss.backward()
             optimizer.step()
 
-            # pred = pred.data.cpu().numpy()
-            pred = pred.data
-            # stage = stage.data.cpu().numpy()
-            stage = stage.data
+            pred = pred.data.cpu().numpy()
+            #pred = pred.data
+            stage = stage.data.cpu().numpy()
+            #stage = stage.data
             for x in range(len(pred)):
                 confusion_mat[stage[x]][pred[x]] += 1
             if i % show_freq == 0:
@@ -259,10 +265,20 @@ for fold in range(opt.fold_num):
         if epoch + 1 == 1:
             print('cost time: %.2f' % (t2 - t1), 's')
 
+    # pos = plot_result['test'].index(min(plot_result['test'])) - 1
+    # final_confusion_mat = final_confusion_mat + confusion_mats[pos]
+    # util.writelog('fold:' + str(fold + 1) + ' recall,acc,sp,err,k: ' + str(statistics.result(confusion_mats[pos])),
+    #               True)
+    # print('------------------')
+    # util.writelog('confusion_mat:\n' + str(confusion_mat))
+
     pos = plot_result['test'].index(min(plot_result['test'])) - 1
-    final_confusion_mat = final_confusion_mat + confusion_mats[pos]
-    util.writelog('fold:' + str(fold + 1) + ' recall,acc,sp,err,k: ' + str(statistics.result(confusion_mats[pos])),
-                  True)
+    if final_confusion_mat.shape == confusion_mats[pos].shape:
+        #final_confusion_mat += confusion_mats[pos]
+        final_confusion_mat += confusion_mats[pos].cpu().numpy()
+    else:
+        raise ValueError("Shape mismatch: final_confusion_mat and confusion_mats[pos] must have the same shape.")
+    util.writelog('fold:' + str(fold + 1) + ' recall,acc,sp,err,k: ' + str(statistics.result(confusion_mats[pos])), True)
     print('------------------')
     util.writelog('confusion_mat:\n' + str(confusion_mat))
 
