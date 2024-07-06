@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
+import torch
 import time
 zhfont1 = matplotlib.font_manager.FontProperties(fname='/home/hypo/.local/share/fonts/simsun.ttc')
 zhfont = matplotlib.font_manager.FontProperties(fname='/usr/share/fonts/times.ttf')
@@ -133,33 +134,25 @@ def annotate_heatmap(im, data=None, valfmt="{x:.2f}",
 # True_lable = ["N3", "N2", "N1", "REM","W"]
 # Pred_lable = ["N3", "N2", "N1", "REM","W"]
 
-def draw(harvest,
-    True_lable = ["N3", "N2", "N1", "REM","W"],
-    Pred_lable = ["N3", "N2", "N1", "REM","W"],
-    name = 'train'):
-    
-    harvest = harvest.astype(float)
-    wide = harvest.shape[0]
-    for i in range(wide):
-        harvest[i,:]=harvest[i,:]/np.sum(harvest[i])
+def draw(harvest, True_labels=["N3", "N2", "N1", "REM", "W"], Pred_labels=["N3", "N2", "N1", "REM", "W"], name='train'):
+    harvest_np = harvest.cpu().numpy() if isinstance(harvest, torch.Tensor) else np.array(harvest)
+    harvest_np = harvest_np.astype(float)
 
-    # plt.close()
-    # plt.figure('confusion_mat')
+    wide = harvest_np.shape[0]
+    for i in range(wide):
+        harvest_np[i, :] = harvest_np[i, :] / np.sum(harvest_np[i])
+
     fig, ax = plt.subplots()
-    ax.set_ylabel('True',fontsize=FontSize)
-    ax.set_xlabel('Pred',fontsize=FontSize)
-    im = heatmap(harvest, True_lable, Pred_lable, ax=ax,
-                       cmap="Wistia")
+    ax.set_ylabel('True', fontsize=FontSize)
+    ax.set_xlabel('Pred', fontsize=FontSize)
+    im = heatmap(harvest_np, True_labels, Pred_labels, ax=ax, cmap="Wistia")
     try:
         texts = annotate_heatmap(im, valfmt="{x:.2f}")
     except Exception as e:
-        print('Draw heatmap error:',e)
-    
+        print('Draw heatmap error:', e)
+
     fig.tight_layout()
-    plt.savefig(name+'_heatmap.png')
-    # plt.show()
-    # del fig
-    # plt.pause(1)
+    plt.savefig(name + '_heatmap.png')
     plt.close('all')
 
 
