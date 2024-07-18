@@ -10,7 +10,7 @@ from sklearn.manifold import TSNE
 
 opt = Options().getparse()
 # choose and creat model
-opt.model_name = 'attNsoft1'
+opt.model_name = 'attNsoft'
 net = CreatNet(opt.model_name)
 
 if not opt.no_cuda:
@@ -24,12 +24,13 @@ if not opt.no_cudnn:
 net.load_state_dict(torch.load('./checkpoints/' + opt.model_name + '.pth'))
 net.eval()
 
-#输入数据eeg为1维向量，将其reshape为1行n列的矩阵，其中n为数据长度。
-#使用transformer.ToInputShape函数对eeg进行预处理，将其转换为输入模型所需的形状。具体操作与实现与ToInputShape函数相同，此处不再赘述。
-#使用transformer.ToTensor函数将预处理后的数据转换为tensor类型，同时可选择是否将其放入GPU中进行计算。
-#将tensor类型的数据输入深度学习模型中，得到模型输出out。
-#对模型输出进行argmax操作，得到预测结果pred。
-#将预测结果和模型输出以元组形式返回。其中，预测结果pred为一个整数，表示eeg数据的预测分类结果；模型输出out为一个1行多列的numpy矩阵，表示eeg数据被预测为每个分类的概率。
+# The input data eeg is a 1-dimensional vector, which is reshaped into a matrix of 1 row and n columns, where n is the data length.
+# Use the transformer.ToInputShape function to preprocess eeg and convert it to the shape required for the input model. The specific operation and implementation are the same as the ToInputShape function, which will not be repeated here.
+# Use the transformer.ToTensor function to convert the preprocessed data into a tensor type, and you can choose whether to put it into the GPU for calculation.
+# Input the tensor type data into the deep learning model to get the model output out.
+# Perform the argmax operation on the model output to get the prediction result pred.
+# Return the prediction result and model output in the form of a tuple. Among them, the prediction result pred is an integer, which represents the predicted classification result of the eeg data; 
+# the model output out is a numpy matrix with 1 row and multiple columns, which represents the probability that the eeg data is predicted as each classification.
 def runmodel(eeg):
     eeg = eeg.reshape(1, -1)
     eeg = transformer.ToInputShape(eeg, opt.model_name, test_flag=True)
@@ -51,7 +52,7 @@ but the data needs meet the following conditions:
 3.type   numpydata  signals:np.float16  stages:np.int16
 4.shape             signals:[?,3000]   stages:[?]
 '''
-#载入数据集，对数据进行处理并进行了打印输出
+# Load the data set, process the data and print it out
 eegdata = np.load('./datasets/simple_test/signals.npy')
 true_stages = np.load('./datasets/simple_test/stages.npy')
 print('shape of eegdata:', eegdata.shape)
@@ -61,10 +62,10 @@ true_stages = true_stages[:250]
 print('shape of eegdata:', eegdata.shape)
 print('shape of true_stage:', true_stages.shape)
 
-# Normalize归一化
+# Normalize
 eegdata = transformer.Balance_individualized_differences(eegdata, '5_95_th')
 
-# run pretrained model对每个信号进行模型预测并记录预测结果和输出结果
+# run pretrained model
 pred_stages = []
 out_tsne = []
 for i in range(len(eegdata)):
@@ -74,7 +75,7 @@ for i in range(len(eegdata)):
 
 pred_stages = np.array(pred_stages)
 
-#这是一个绘制嵌入图的函数
+# Plotting the embedding graph
 def plot_embedding(data, label, title):
     x_min, x_max = np.min(data, 0), np.max(data, 0)
     data = (data - x_min) / (x_max - x_min)
@@ -102,17 +103,3 @@ fig1 = plot_embedding(X1, true_stages, 't-SNE embedding of the digits')
 plt.show()
 
 print('err:', sum((true_stages[i] != pred_stages[i]) for i in range(len(pred_stages))) / len(true_stages) * 100, '%')
-
-# plot result
-
-    #
-    # plt.figure()
-    # plt.xlim((0, len(true_stages)))
-    # plt.ylim((0, 6))
-    # plt.plot(true_stages + 1, color='blue', label="Expert")
-    # plt.plot(pred_stages + 1, color='orange', label="Our model")
-    # plt.legend(loc="lower right")
-    # plt.yticks([1, 2, 3, 4, 5], ['N3', 'N2', 'N1', 'REM', 'W'])
-    # plt.xlabel('Epoch number')
-    # plt.show()
-
