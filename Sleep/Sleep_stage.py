@@ -1,6 +1,3 @@
-
-
-
 import matplotlib.pyplot as plt
 import mne
 
@@ -9,7 +6,6 @@ raw_train = mne.io.read_raw_edf("datasets/sleep-edfx/SC4112E0-PSG.edf", preload=
 
 annot_train = mne.read_annotations("datasets/sleep-edfx/SC4112EC-Hypnogram.edf")
 print(annot_train)
-
 
 
 # Crop annotations
