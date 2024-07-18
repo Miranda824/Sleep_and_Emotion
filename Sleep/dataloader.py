@@ -20,58 +20,58 @@ def postprocess_predictions(predictions):
     rounded_predictions = np.round(predictions)
     return rounded_predictions
 
-def trimdata(data,num):#将数据data的长度截取为num的整数倍
-    return data[:num*int(len(data)/num)]
+def trimdata(data, num):  # Trim the length of data to be a multiple of num
+    return data[:num * int(len(data) / num)]
 
-def reducesample(data,mult):#将数据data按照步长mult进行降采样
+def reducesample(data, mult):  # Downsample the data by a factor of mult
     return data[::mult]
 
-# delete uesless label
-def del_UND(signals,stages):
+# Delete useless labels
+def del_UND(signals, stages):
     stages_copy = stages.copy()
     cnt = 0
     for i in range(len(stages_copy)):
-        if stages_copy[i] == 5 :
-            signals = np.delete(signals,i-cnt,axis =0)
-            stages = np.delete(stages,i-cnt,axis =0)
+        if stages_copy[i] == 5:
+            signals = np.delete(signals, i - cnt, axis=0)
+            stages = np.delete(stages, i - cnt, axis=0)
             cnt += 1
-    return signals,stages
+    return signals, stages
 
-def connectdata(signal,stage,signals=[],stages=[]):#将新的信号数据和标签数据与之前的数据连接起来的函数
+def connectdata(signal, stage, signals=[], stages=[]):  # Connect new signal and stage data with existing data
     if signals == []:
-        signals =signal.copy()
-        stages =stage.copy()
+        signals = signal.copy()
+        stages = stage.copy()
     else:
-        signals=np.concatenate((signals, signal), axis=0)
-        stages=np.concatenate((stages, stage), axis=0)
-    return signals,stages
+        signals = np.concatenate((signals, signal), axis=0)
+        stages = np.concatenate((stages, stage), axis=0)
+    return signals, stages
 
-#load one subject data form cc2018
-def     loaddata_cc2018(filedir,filename,signal_name,BID,filter = True):
-    dirpath = os.path.join(filedir,filename)
-    #load signal
-    hea_path = os.path.join(dirpath,os.path.basename(dirpath)+'.hea')
-    signal_path = os.path.join(dirpath,os.path.basename(dirpath)+'.mat')
+# Load one subject data from cc2018
+def loaddata_cc2018(filedir, filename, signal_name, BID, filter=True):
+    dirpath = os.path.join(filedir, filename)
+    # Load signal
+    hea_path = os.path.join(dirpath, os.path.basename(dirpath) + '.hea')
+    signal_path = os.path.join(dirpath, os.path.basename(dirpath) + '.mat')
 
-# 解决路径问题
-    hea_path = hea_path.replace('\\','/')
-    signal_path = signal_path.replace('\\','/')
+    # Fix path issue
+    hea_path = hea_path.replace('\\', '/')
+    signal_path = signal_path.replace('\\', '/')
 
     signal_names = []
-    for i,line in enumerate(open(hea_path),0):
-        if i!=0:
-            line=line.strip()
+    for i, line in enumerate(open(hea_path), 0):
+        if i != 0:
+            line = line.strip()
             signal_names.append(line.split()[8])
     mat = sio.loadmat(signal_path)
     signals = mat['val'][signal_names.index(signal_name)]
 
-    #load stage
-    stagepath = os.path.join(dirpath,os.path.basename(dirpath)+'-arousal.mat')
+    # Load stage
+    stagepath = os.path.join(dirpath, os.path.basename(dirpath) + '-arousal.mat')
 
-    # 解决路径问题
+    # Fix path issue
     stagepath = stagepath.replace('\\', '/')
 
-    mat=h5py.File(stagepath,'r')
+    mat = h5py.File(stagepath, 'r')
     # N3(S4+S3)->0  N2->1  N1->2  REM->3  W->4  UND->5
     N3 = mat['data']['sleep_stages']['nonrem3'][0]
     N2 = mat['data']['sleep_stages']['nonrem2'][0]
@@ -79,32 +79,32 @@ def     loaddata_cc2018(filedir,filename,signal_name,BID,filter = True):
     REM = mat['data']['sleep_stages']['rem'][0]
     W = mat['data']['sleep_stages']['wake'][0]
     UND = mat['data']['sleep_stages']['undefined'][0]
-    stages = N3*0 + N2*1 + N1*2 + REM*3 + W*4 + UND*5
-    #resample
-    signals = reducesample(signals,2)
-    stages = reducesample(stages,2)
-    #trim
-    signals = trimdata(signals,3000)
-    stages = trimdata(stages,3000)
-    #30s per lable
-    signals = signals.reshape(-1,3000)
+    stages = N3 * 0 + N2 * 1 + N1 * 2 + REM * 3 + W * 4 + UND * 5
+    # Resample
+    signals = reducesample(signals, 2)
+    stages = reducesample(stages, 2)
+    # Trim
+    signals = trimdata(signals, 3000)
+    stages = trimdata(stages, 3000)
+    # 30s per label
+    signals = signals.reshape(-1, 3000)
     stages = stages[::3000]
-    #Balance individualized differences
+    # Balance individualized differences
     signals = transformer.Balance_individualized_differences(signals, BID)
-    #del UND
-    signals,stages = del_UND(signals, stages)
+    # Delete UND
+    signals, stages = del_UND(signals, stages)
 
-    return signals.astype(np.float16),stages.astype(np.int16)
+    return signals.astype(np.float16), stages.astype(np.int16)
 
-#load one subject data form sleep-edfx
-#根据指定的数据集名、信号名、数量、BID等参数，从指定文件夹中读取数据集中的指定数量的文件；
-# 读取数据文件中指定的信号通道的信号数据，并将其转换为numpy数组格式；
-# 读取数据文件中的注释信息，将睡眠阶段转换为数字标签；
-# 根据标签信息和信号数据，将睡眠信号数据切分为相应的睡眠阶段，并返回切分后的睡眠信号数据和标签数据；
-# 可选地，对睡眠信号数据进行指定长度的剪裁，只保留指定时间段内的数据；
-# 对信号数据进行平衡个体差异的处理；
-# 返回处理后的睡眠信号数据和标签数据。
-def loaddata_sleep_edfx(filedir,filename,signal_name,BID,select_sleep_time,model):
+# Load one subject data from sleep-edfx
+# Load data from the specified dataset, signal, number, BID, etc., from the specified folder
+# Read the signal data of the specified signal channel in the data file and convert it to numpy array format
+# Read the annotation information in the data file and convert the sleep stages to numeric labels
+# According to the label information and signal data, segment the sleep signal data into corresponding sleep stages and return the segmented sleep signal data and label data
+# Optionally, trim the sleep signal data to retain only the specified time period
+# Balance individualized differences in signal data
+# Return the processed sleep signal data and label data
+def loaddata_sleep_edfx(filedir, filename, signal_name, BID, select_sleep_time, model):
     filenum = filename[2:6]
     filenames = os.listdir(filedir)
     for filename in filenames:
@@ -115,7 +115,7 @@ def loaddata_sleep_edfx(filedir,filename,signal_name,BID,select_sleep_time,model
 
     raw_data = mne.io.read_raw_edf(os.path.join(filedir, f_signal_name), preload=True)
 
-    #实现情绪分类所需的数据预处理
+    # Implement data preprocessing for emotion classification
     channel_name = "EEG Fpz-Cz"
     channel_index = raw_data.ch_names.index(channel_name)
 
@@ -129,7 +129,7 @@ def loaddata_sleep_edfx(filedir,filename,signal_name,BID,select_sleep_time,model
     target_num_samples = int(num_samples * (target_sampling_freq / original_sampling_freq))
     resampled_data = resample(eeg_data[0], target_num_samples)
     num_sequences = 400
-    sequence_length =8064
+    sequence_length = 8064
     num_points_constant = num_sequences * sequence_length
     reshaped_data = resampled_data[:num_points_constant].reshape(num_sequences, sequence_length)
     channel = [1]
@@ -139,56 +139,41 @@ def loaddata_sleep_edfx(filedir,filename,signal_name,BID,select_sleep_time,model
     sample_rate = 128  # Sampling rate of 128 Hz
 
     meta = []
-    # for i in range(0, 10):
-    # loop over 0-39 trails
     data = reshaped_data
     start = 0
     while start + window_size < data.shape[1]:
         meta_array = []
-        meta_data = []  # meta vector for analysis
+        meta_data = []  # Meta vector for analysis
         for j in channel:
-            X = data[j][
-                start: start + window_size]  # Slice raw data over 2 sec, at interval of 0.125 sec以0.125秒为间隔，在2秒内对原始数据进行切片
-            Y = pe.bin_power(X, band,
-                             sample_rate)  # FFT over 2 sec of channel j, in seq of theta, alpha, low beta, high beta, gamma
+            X = data[j][start: start + window_size]  # Slice raw data over 2 sec, at interval of 0.125 sec
+            Y = pe.bin_power(X, band, sample_rate)  # FFT over 2 sec of channel j, in seq of theta, alpha, low beta, high beta, gamma
             meta_data = meta_data + list(Y[0])
 
         meta_array.append(np.array(meta_data))
-        #                 meta_array.append(labels)
         meta_array.append([1, 1, 1, 1])
 
         meta.append(np.array(meta_array, dtype=object))
         start = start + step_size
 
     meta = np.array(meta)
-
     unlabeled_data = meta
 
-    # print(unlabeled_data.shape)
-    # print(unlabeled_data)
     data_training = []
     for i in range(0, unlabeled_data.shape[0]):
         data_training.append(unlabeled_data[i][0])
-    # print(np.array(data_training).shape)
-    # print(np.array(label_training).shape)
 
     X = np.array(data_training)
-
-    X = normalize(X)  # 归一化
+    X = normalize(X)  # Normalize
 
     X_training = X
     X_scaled_training = pd.DataFrame(data=X_training).values
     X_scaled_training = tf.convert_to_tensor(X_scaled_training, dtype=tf.float32)
 
-
     predictions = model.predict(X_scaled_training.numpy())
-    # processed_predictions = postprocess_predictions(predictions)
     processed_predictions = predictions
-    print('look here:',processed_predictions.shape)
-    emo_data,emo_index = np.max(processed_predictions,axis=1),np.argmax(processed_predictions,axis=1)
+    print('look here:', processed_predictions.shape)
+    emo_data, emo_index = np.max(processed_predictions, axis=1), np.argmax(processed_predictions, axis=1)
     print(emo_index.shape)
-
-
 
     raw_annot = mne.read_annotations(os.path.join(filedir, f_stage_name))
 
@@ -197,25 +182,25 @@ def loaddata_sleep_edfx(filedir,filename,signal_name,BID,select_sleep_time,model
     eeg = eeg.reshape(-1)
 
     raw_data.set_annotations(raw_annot, emit_warning=False)
-    #N3(S4+S3)->0  N2->1  N1->2  REM->3  W->4  other->UND->5
+    # N3(S4+S3)->0  N2->1  N1->2  REM->3  W->4  other->UND->5
     event_id = {'Sleep stage 4': 0,
-                  'Sleep stage 3': 0,
-                  'Sleep stage 2': 1,
-                  'Sleep stage 1': 2,
-                  'Sleep stage R': 3,
-                  'Sleep stage W': 4,
-                  'Sleep stage ?': 5,
-                  'Movement time': 5}
+                'Sleep stage 3': 0,
+                'Sleep stage 2': 1,
+                'Sleep stage 1': 2,
+                'Sleep stage R': 3,
+                'Sleep stage W': 4,
+                'Sleep stage ?': 5,
+                'Movement time': 5}
     events, event_dict = mne.events_from_annotations(
         raw_data, event_id=event_id, chunk_duration=30.)
 
     stages = []
-    signals =[]
-    for i in range(len(events)-1):
+    signals = []
+    for i in range(len(events) - 1):
         stages.append(events[i][2])
-        signals.append(eeg[events[i][0]:events[i][0]+3000])
-    stages=np.array(stages)
-    signals=np.array(signals)
+        signals.append(eeg[events[i][0]:events[i][0] + 3000])
+    stages = np.array(stages)
+    signals = np.array(signals)
 
     # #select sleep time
     if select_sleep_time:
@@ -241,7 +226,8 @@ def loaddata_sleep_edfx(filedir,filename,signal_name,BID,select_sleep_time,model
     # print('shape:',signals.shape,stages.shape)
 
     signals = transformer.Balance_individualized_differences(signals, BID)
-    #连接情绪分类结果与睡眠分期的原始输入信号，（将分类结果硬编码嵌入到所有的段中去，每个段在原始的睡眠分期输入中shape为3000，现在变为3488）
+    # Connect the emotion classification results to the original input signal of sleep stage 
+    # hard-code the classification results into all segments, each segment has a shape of 3000 in the original sleep stage input, and now it becomes 3488
     print('all_1:{}'.format((emo_index==1).all()))
     emo_index = np.repeat(emo_index.reshape(1,-1),signals.shape[0],axis=0)
     # print(emo_index.shape)
@@ -263,17 +249,16 @@ def loaddataset(filedir,dataset_name,signal_name,num,BID,select_sleep_time,shuff
 
     print('load dataset, please wait...')
     filenames = os.listdir(filedir)
-    if shuffle:#获取文件夹中所有文件的文件名列表，如果shuffle为True，则打乱文件名列表的顺序。
+    if shuffle:  # Get a list of file names for all files in a folder. If shuffle is True, the order of the file name list will be shuffled.
         random.shuffle(filenames)
     signals=[]
     stages=[]
-    if dataset_name in ['sleep-edfx','sleep-edf']:
+    if dataset_name in ['sleep-edfx','sleep-edfx-8']:
         # if num > 197:
-        #     num = 197
-        if dataset_name == 'sleep-edf':
+        #      num = 197
+        if dataset_name == 'sleep-edfx-8':
             filenames = ['SC4002E0-PSG.edf','SC4012E0-PSG.edf','SC4102E0-PSG.edf','SC4112E0-PSG.edf',
             'ST7022J0-PSG.edf','ST7052J0-PSG.edf','ST7121J0-PSG.edf','ST7132J0-PSG.edf']
-            # filenames = ['SC4002E0-PSG.edf']
         cnt = 0
         for filename in filenames:
             if 'PSG' in filename:
