@@ -54,7 +54,7 @@ np.save(file_path, pre_Z)
 print(pre_Z.shape)
 print(np.max(pre_Z))
 print(np.min(pre_Z))
-Z = np.ravel(pre_Z)  # 扁平化
+Z = np.ravel(pre_Z)  # flattening
 
 # from keras.utils import to_categorical
 from keras.utils.np_utils import to_categorical
@@ -105,7 +105,7 @@ np.save(file_path, pre_L)
 print(pre_L.shape)
 print(np.max(pre_L))
 print(np.min(pre_L))
-L = np.ravel(pre_L)  # arousa标签
+L = np.ravel(pre_L)  # arousa label
 
 Arousal_Test = np.ravel(N[:, [0]])
 Valence_Test = np.ravel(N[:, [1]])
@@ -115,7 +115,7 @@ Like_Test = np.ravel(N[:, [3]])
 x_test = np.array(M[:])
 
 
-# 验证集
+# validation set
 with open('label_validation.npy', 'rb') as fileTrainL:
     V = np.load(fileTrainL)
 print(V.shape)
