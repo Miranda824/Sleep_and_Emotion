@@ -57,9 +57,9 @@ if opt.cross_validation == 'k_fold':
     train_sequences, test_sequences = transformer.k_fold_generator(len(stages), opt.fold_num)
 elif opt.cross_validation == 'subject':
     util.writelog('train statistics:', True)
-    stage_cnt, stage_cnt_per = statistics.stage(stages[:int(0.8 * len(stages))])
+    stage_cnt, stage_cnt_per = statistics.stage(stages[:int(0.95 * len(stages))])
     util.writelog('test statistics:', True)
-    stage_cnt, stage_cnt_per = statistics.stage(stages[int(0.8 * len(stages)):])
+    stage_cnt, stage_cnt_per = statistics.stage(stages[int(0.95 * len(stages)):])
     signals, stages = transformer.batch_generator_subject(signals, stages, opt.batchsize, shuffle=False)
     train_sequences, test_sequences = transformer.k_fold_generator(len(stages), 1)
 
