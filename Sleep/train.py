@@ -21,8 +21,8 @@ from rocNpr import roc_plot, pr_plot
 from tensorflow.keras.models import load_model
 if hasattr(torch.cuda, 'empty_cache'):
     torch.cuda.empty_cache()
-# 设置可见的GPU设备
-# os.environ["CUDA_VISIBLE_DEVICES"] = "0,1,2"  # 设置可见的GPU设备编号
+# Set visible GPU devices
+# os.environ["CUDA_VISIBLE_DEVICES"] = "0,1,2"  # Set the visible GPU device number
 #emotion_model = load_model('F:/sleep/Sleep/emo_model/emotion_re_15surprise.h5')
 emotion_model = load_model('F:/sleep/Sleep/emo_model/emotion_re_15surprise.h5', compile=False)
 
@@ -73,7 +73,7 @@ print('load data cost time: %.2f' % (t2 - t1), 's')
 net = CreatNet(opt.model_name)
 torch.save(net.cpu().state_dict(), './checkpoints/' + opt.model_name + '.pth')
 util.show_paramsnumber(net)
-# 每块GPU的Batchsize
+
 # if not opt.no_cuda:
 #     net = net.cuda()
 #     batchsize_per_gpu = 128 // torch.cuda.device_count()
@@ -100,15 +100,15 @@ optimizer = torch.optim.Adam(net.parameters(), lr=opt.lr)
 
 # scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.8)
 criterion = nn.CrossEntropyLoss(weight)
-# 将模型移动到主设备
+# Move the model to the master device
 # device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 # model = CreatNet(opt.model_name).to(device)
 
-# # 使用DataParallel封装模型
+# # Encapsulating Models with DataParallel
 # model = DataParallel(model)
 
-# ——_——_——_——_——_——_——_——————_——_——_——__——_
-# model.train()  # 将 net 改为 model
+# ——_——_——_——_——_——_——_——————_——_——Encapsulating Models with DataParallel_——__——_
+# model.train()  # Change net to model
 #
 # net = net.to(device)
 # -----------------------------------
@@ -120,8 +120,8 @@ def evalnet(net, signals, stages, sequences, epoch, plot, plot_result={}, save_f
 
         signal = transformer.ToInputShape(signals[sequence], opt.model_name, test_flag=True)
         signal, stage = transformer.ToTensor(signal, stages[sequence], no_cuda=opt.no_cuda)
-        # signal = signal.to(device)  # 将输入数据移动到GPU设备上
-        # stage = stage.to(device)  # 将标签数据移动到GPU设备上
+        # signal = signal.to(device)  # Move input data to the GPU device
+        # stage = stage.to(device)  # Move label data to GPU device
         with torch.no_grad():
             out = net(signal)
             # out=model(signal)
@@ -181,17 +181,16 @@ save_file = 'evaluation_results.txt'
 
 
 print('begin to train ...')
-# 首先初始化一个5*5的二维数组final_confusion_mat，并将其元素全部赋值为0，表示后续将要计算的5分类混淆矩阵的初始值。
-#save
-# 然后进行opt.fold_num次循环，每次循环都会加载预训练模型参数，并根据是否使用GPU对模型进行设置。
-#
-# 接下来，将定义一个空列表confusion_mats，用于存储每个fold的混淆矩阵结果。
+# First, initialize a 5*5 two-dimensional array final_confusion_mat and assign all its elements to 0, indicating the initial value of the 5-class confusion matrix to be calculated later.
+# save
+# Then opt.fold_num loops are performed, each of which loads the pre-trained model parameters and sets the model based on whether the GPU is used.
+# Next, an empty list confusion_mats is defined to store the confusion matrix results for each fold.
 # true_stages = []  # Initialize the true stages list
 # pred_stages = []  # Initialize the predicted stages list
 final_confusion_mat = np.zeros((5, 5), dtype=int)
 
 
-# 在循环前创建tqdm对象
+# Create the tqdm object before the loop
 epochs_range = tqdm(range(opt.epochs), desc="Epochs", unit="epoch")
 for fold in range(opt.fold_num):
     # net.load_state_dict(torch.load('./checkpoints/' + opt.model_name + '.pth'))
@@ -204,9 +203,9 @@ for fold in range(opt.fold_num):
     # #--------------------------------
     plot_result = {'train': [1.], 'test': [1.]}
     confusion_mats = []
-    plot = 'false'  # 在最后一个epoch保存数据用来绘制多条roc，pr
+    plot = 'false'  # Save data in the last epoch to draw multiple roc, pr
     # for epoch in range(opt.epochs):
-    # 创建当前fold的tqdm对象
+    # Create a tqdm object for the current fold
     confusion_mat = torch.zeros((5,5),dtype=int).to('cuda:0')
     epochs_range = tqdm(range(opt.epochs), desc=f"Fold {fold + 1} Epochs", unit="epoch")
     for epoch in epochs_range:
@@ -215,7 +214,7 @@ for fold in range(opt.fold_num):
         print('fold:', fold + 1, 'epoch:', epoch + 1)
         net.train()
         # #——_——_——_——_——_——_——_——————_——_——_——__——_
-        # model.train()  # 将 net 改为 model
+        # model.train()  # Change net to model
         # #-----------------------------------
         for i, sequence in enumerate(train_sequences[fold], 1):
 
@@ -288,5 +287,5 @@ util.writelog('confusion_mat:\n' + str(final_confusion_mat), True)
 statistics.stagefrommat(final_confusion_mat)
 heatmap.draw(final_confusion_mat, name='final_test')
 
-epochs_range.close()  # 关闭tqdm对象
+epochs_range.close()  # Close the tqdm object
 
