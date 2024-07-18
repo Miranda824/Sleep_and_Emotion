@@ -242,7 +242,7 @@ for fold in range(opt.fold_num):
             if i % show_freq == 0:
                 plot_result['train'].append(statistics.result(confusion_mat)[3])
                 heatmap.draw(confusion_mat, name='train')
-                statistics.show(plot_result, epoch + i / (batch_length * 0.8))
+                statistics.show(plot_result, epoch + i / (batch_length * 0.95))
                 confusion_mat[:] = 0
         if epoch + 1 == opt.epochs:
             plot = 'true'
