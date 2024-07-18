@@ -245,7 +245,7 @@ def loaddata_sleep_edfx(filedir, filename, signal_name, BID, select_sleep_time, 
     return signals.astype(np.float16),stages.astype(np.int16)
 
 #load all data in datasets
-def loaddataset(filedir,dataset_name,signal_name,num,BID,select_sleep_time,shuffle = True,model=None):#num，要加载的数据数量
+def loaddataset(filedir,dataset_name,signal_name,num,BID,select_sleep_time,shuffle = True,model=None):  # num, the amount of data to load
 
     print('load dataset, please wait...')
     filenames = os.listdir(filedir)
