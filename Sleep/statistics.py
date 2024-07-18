@@ -61,7 +61,7 @@ def Kappa(mat):
 
 def result(mat,print_sub=False):
     if isinstance(mat, torch.Tensor):
-        mat = mat.cpu().numpy()  # 确保 mat 是一个 NumPy 数组
+        mat = mat.cpu().numpy()  
     wide=mat.shape[0]
     sub_acc = np.zeros(wide)
     sub_recall = np.zeros(wide)
@@ -113,8 +113,6 @@ def show(plot_result,epoch):
     plt.title('Running err.',fontsize='large')
     plt.savefig('./running_err.png')
 
-    # plt.draw()
-    # plt.pause(0.01)
 
 
 def main():
