@@ -22,8 +22,8 @@ from tensorflow.keras.models import load_model
 if hasattr(torch.cuda, 'empty_cache'):
     torch.cuda.empty_cache()
 # Set visible GPU devices
-# os.environ["CUDA_VISIBLE_DEVICES"] = "0,1,2"  # Set the visible GPU device number
-#emotion_model = load_model('F:/sleep/Sleep/emo_model/emotion_re_15surprise.h5')
+os.environ["CUDA_VISIBLE_DEVICES"] = "0,1,2"  # Set the visible GPU device number
+# emotion_model = load_model('F:/sleep/Sleep/emo_model/emotion_re_15surprise.h5')
 emotion_model = load_model('F:/sleep/Sleep/emo_model/emotion_re_15surprise.h5', compile=False)
 
 
@@ -63,7 +63,6 @@ elif opt.cross_validation == 'subject':
     signals, stages = transformer.batch_generator_subject(signals, stages, opt.batchsize, shuffle=False)
     train_sequences, test_sequences = transformer.k_fold_generator(len(stages), 1)
 
-# print(train_sequences[0].shape)/home/ti80/Documents/123test/Final_sleep
 batch_length = len(stages)
 print('length of batch:', batch_length)
 show_freq = int(len(train_sequences[0]) / 5)
@@ -74,10 +73,6 @@ net = CreatNet(opt.model_name)
 torch.save(net.cpu().state_dict(), './checkpoints/' + opt.model_name + '.pth')
 util.show_paramsnumber(net)
 
-# if not opt.no_cuda:
-#     net = net.cuda()
-#     batchsize_per_gpu = 128 // torch.cuda.device_count()
-#     opt.batchsize = batchsize_per_gpu * torch.cuda.device_count()
 weight = np.array([1, 1, 1, 1, 1])
 if opt.weight_mod == 'avg_best':
     weight = np.log(1 / stage_cnt_per)
@@ -100,12 +95,6 @@ optimizer = torch.optim.Adam(net.parameters(), lr=opt.lr)
 
 # scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.8)
 criterion = nn.CrossEntropyLoss(weight)
-# Move the model to the master device
-# device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-# model = CreatNet(opt.model_name).to(device)
-
-# # Encapsulating Models with DataParallel
-# model = DataParallel(model)
 
 # ——_——_——_——_——_——_——_——————_——_——Encapsulating Models with DataParallel_——__——_
 # model.train()  # Change net to model
@@ -133,19 +122,7 @@ def evalnet(net, signals, stages, sequences, epoch, plot, plot_result={}, save_f
 
         roc_plot(out, stage)
         pr_plot(out, stage)
-        # plot_embedding(out, stage)
-        # if plot == 'true':
-        #     out_excel=out.ravel()
-        #     stage_excel = label_binarize(stage, classes=[0, 1, 2, 3, 4]).ravel()
 
-        #     data_out = pd.DataFrame(out_excel)
-        #     data_stage = pd.DataFrame(stage_excel)
-        #     writer = pd.ExcelWriter('EXCEL/'+opt.model_name+'.xlsx')
-        #     data_out.to_excel(writer, 'y_score', float_format='%.5f')
-        #     data_stage.to_excel(writer, 'y_stage', float_format='%.5f')
-        #     writer.save()
-
-        #     writer.close()
         for x in range(len(pred)):
             confusion_mat[stage[x]][pred[x]] += 1
 
@@ -185,8 +162,7 @@ print('begin to train ...')
 # save
 # Then opt.fold_num loops are performed, each of which loads the pre-trained model parameters and sets the model based on whether the GPU is used.
 # Next, an empty list confusion_mats is defined to store the confusion matrix results for each fold.
-# true_stages = []  # Initialize the true stages list
-# pred_stages = []  # Initialize the predicted stages list
+
 final_confusion_mat = np.zeros((5, 5), dtype=int)
 
 
@@ -221,8 +197,7 @@ for fold in range(opt.fold_num):
             signal = transformer.ToInputShape(signals[sequence], opt.model_name, test_flag=False)
 
             signal, stage = transformer.ToTensor(signal, stages[sequence], no_cuda=opt.no_cuda)
-            # signal = signal.to(device)
-            # stage = stage.to(device)
+            
             out = net(signal)
 
 
@@ -246,10 +221,7 @@ for fold in range(opt.fold_num):
                 confusion_mat[:] = 0
         if epoch + 1 == opt.epochs:
             plot = 'true'
-            # true_stages = []  # Clear the true stages list for each fold
-            # pred_stages = []  # Clear the predicted stages list for each fold
-            # print('True Stages:', true_stages)
-            # print('Predicted Stages:', pred_stages)
+           
         plot_result, confusion_mat = evalnet(net, signals, stages, test_sequences[fold], epoch + 1, plot, plot_result)
         confusion_mats.append(confusion_mat)
         # scheduler.step()
@@ -264,19 +236,8 @@ for fold in range(opt.fold_num):
         if epoch + 1 == 1:
             print('cost time: %.2f' % (t2 - t1), 's')
 
-    # pos = plot_result['test'].index(min(plot_result['test'])) - 1
-    # final_confusion_mat = final_confusion_mat + confusion_mats[pos]
-    # util.writelog('fold:' + str(fold + 1) + ' recall,acc,sp,err,k: ' + str(statistics.result(confusion_mats[pos])),
-    #               True)
-    # print('------------------')
-    # util.writelog('confusion_mat:\n' + str(confusion_mat))
-
     pos = plot_result['test'].index(min(plot_result['test'])) - 1
-    if final_confusion_mat.shape == confusion_mats[pos].shape:
-        #final_confusion_mat += confusion_mats[pos]
-        final_confusion_mat += confusion_mats[pos].cpu().numpy()
-    else:
-        raise ValueError("Shape mismatch: final_confusion_mat and confusion_mats[pos] must have the same shape.")
+    final_confusion_mat += confusion_mats[pos].cpu().numpy()
     util.writelog('fold:' + str(fold + 1) + ' recall,acc,sp,err,k: ' + str(statistics.result(confusion_mats[pos])), True)
     print('------------------')
     util.writelog('confusion_mat:\n' + str(confusion_mat))
