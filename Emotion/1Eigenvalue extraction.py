@@ -26,7 +26,6 @@ subjectList = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11',
 def FFT_Processing(sub, channel, band, window_size, step_size, sample_rate):
     meta = []
 
-    # file_path = "D:\sleep111\DEAP\data_preprocessed_python"
     file_path = "/home/ti80/Documents/github/Sleep and Emotion/Emotion/DEAP/data_preprocessed_python"
     file_name = 's' + sub + '.dat'
     file_full_path = os.path.join(file_path, file_name)
@@ -48,7 +47,7 @@ def FFT_Processing(sub, channel, band, window_size, step_size, sample_rate):
                 meta_data = []  # meta vector for analysis
                 for j in channel:
                     X = data[j][
-                        start: start + window_size]  # Slice raw data over 2 sec, at interval of 0.125 sec以0.125秒为间隔，在2秒内对原始数据进行切片
+                        start: start + window_size]  # Slice raw data over 2 sec, at interval of 0.125 sec
                     Y = pe.bin_power(X, band,
                                      sample_rate)  # FFT over 2 sec of channel j, in seq of theta, alpha, low beta, high beta, gamma
                     meta_data = meta_data + list(Y[0])
