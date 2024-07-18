@@ -74,13 +74,11 @@ for i in range(len(eegdata)):
     out_tsne.append(runmodel(eegdata[i])[1])
 
 pred_stages = np.array(pred_stages)
-# print(pred_stages ,'pred_stages ')
 #这是一个绘制嵌入图的函数
 def plot_embedding(data, label, title):
     x_min, x_max = np.min(data, 0), np.max(data, 0)
     data = (data - x_min) / (x_max - x_min)
     dict1 = {0: 'N3', 1: 'N2', 2: 'N1', 3: 'REM', 4: 'W'}
-    # dict2 = {0: 'darkviolet', 1: 'lime', 2: 'indigo', 3: 'olive', 4: 'crimson'}
     dict2 = {0: 'black', 1: 'darkred', 2: 'orangered', 3: 'limegreen', 4: 'fuchsia'}
     fig = plt.figure(figsize=(5, 5))
     ax = plt.subplot(111)
@@ -93,31 +91,15 @@ def plot_embedding(data, label, title):
     plt.xticks([])
     plt.yticks([])
     plt.title(title)
-    # plt.axis('off')
     return fig
 
 
 out_tsne = np.squeeze(np.array(out_tsne), 1)
 tsne = TSNE(n_components=2, init='pca', perplexity=30, random_state=0)
 X = tsne.fit_transform(eegdata)
-# print('X',X)
 X1 = tsne.fit_transform(out_tsne)
-# print('X1',X1)
 fig = plot_embedding(X, true_stages, 'digits')
 
 fig1 = plot_embedding(X1, true_stages, 't-SNE embedding of the digits')
 
 plt.show()
-#
-# print('err:', sum((true_stages[i] != pred_stages[i]) for i in range(len(pred_stages))) / len(true_stages) * 100, '%')
-#
-# # plot result
-# plt.figure()
-# plt.xlim((0, len(true_stages)))
-# plt.ylim((0, 6))
-# plt.plot(true_stages + 1, color='m', label="Expert")
-# plt.plot(pred_stages + 1, color='c', label="Our model")
-# plt.legend(loc="lower right")
-# plt.yticks([1, 2, 3, 4, 5], ['N3', 'N2', 'N1', 'REM', 'W'])
-# plt.xlabel('Epoch number')
-# plt.show()
