@@ -78,7 +78,7 @@ print(pre_L.shape)
 print(np.max(pre_L))
 print(np.min(pre_L))
 
-L = np.ravel(pre_L)  # arousa label
+L = np.ravel(pre_L)
 
 x_test = np.array(M[:])
 
