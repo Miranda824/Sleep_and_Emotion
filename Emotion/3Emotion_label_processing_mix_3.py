@@ -42,8 +42,8 @@ print(Y.shape)
 X_normalized = normalize(X, norm='max', axis=0)  # Normalize along axis 0 (features)
 
 pre_Z = process_label(Y[:, [0]], Y[:, [1]], 1, 3, 3, 5,
-                                            5, 7, 7, 9,
-                                            7, 9, 3, 7)
+                                            3, 5, 7, 9,
+                                            7, 9, 1, 5)
 folder_path = "/home/ti80/Documents/github/Sleep_and_Emotion/Emotion/Training_set/Label"
 file_path = f"{folder_path}/label_training_N2_R.npy"
 np.save(file_path, pre_Z)
@@ -68,8 +68,8 @@ with open('label_testing.npy', 'rb') as fileTrainL:
 M_normalized = normalize(M, norm='max', axis=0)  # Normalize along axis 0 (features)
 
 pre_L = process_label(N[:, [0]], N[:, [1]], 1, 3, 3, 5,
-                                            5, 7, 7, 9,
-                                            7, 9, 3, 7)
+                                            3, 5, 7, 9,
+                                            7, 9, 1, 5)
 folder_path = "/home/ti80/Documents/github/Sleep_and_Emotion/Emotion/Testing_set/Label"
 file_path = f"{folder_path}/label_testing_N2_R.npy"
 np.save(file_path, pre_L)
@@ -88,8 +88,8 @@ with open('label_validation.npy', 'rb') as fileTrainL:
     V = np.load(fileTrainL)
 print(V.shape)
 pre_V = process_label(V[:, [0]], V[:, [1]], 1, 3, 3, 5,
-                                            5, 7, 7, 9,
-                                            7, 9, 3, 7)
+                                            3, 5, 7, 9,
+                                            7, 9, 1, 5)
 folder_path = "/home/ti80/Documents/github/Sleep_and_Emotion/Emotion/Validation_set/Label"
 file_path = f"{folder_path}/label_validation_N2_R.npy"
 np.save(file_path, pre_V)
