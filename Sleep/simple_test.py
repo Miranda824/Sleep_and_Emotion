@@ -10,7 +10,7 @@ from sklearn.manifold import TSNE
 
 opt = Options().getparse()
 # choose and creat model
-opt.model_name = 'attNsoft1'
+opt.model_name = 'attNsoft'
 net = CreatNet(opt.model_name)
 
 if not opt.no_cuda:
@@ -22,7 +22,7 @@ if not opt.no_cudnn:
 
 # load prtrained_model
 # net.load_state_dict(torch.load('./checkpoints/' + opt.model_name + '.pth'))
-net.load_state_dict(torch.load('./transcheckpoint/' + 'attNsoft1' + '.pth'))
+net.load_state_dict(torch.load('./transcheckpoint/' + 'attNsoft' + '.pth'))
 net.eval()
 
 #输入数据eeg为1维向量，将其reshape为1行n列的矩阵，其中n为数据长度。
