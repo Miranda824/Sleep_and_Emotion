@@ -23,7 +23,6 @@ if hasattr(torch.cuda, 'empty_cache'):
     torch.cuda.empty_cache()
 # Set visible GPU devices
 os.environ["CUDA_VISIBLE_DEVICES"] = "0,1,2"  # Set the visible GPU device number
-# emotion_model = load_model('F:/sleep/Sleep/emo_model/emotion_re_15surprise.h5')
 emotion_model = load_model('F:/sleep/Sleep/emo_model/emotion_re_15surprise.h5', compile=False)
 
 
