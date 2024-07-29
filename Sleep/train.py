@@ -84,18 +84,11 @@ if not opt.no_cuda:
 if not opt.no_cudnn:
     torch.backends.cudnn.benchmark = True
 
-#optimizer = torch.optim.Adam(net.parameters(), lr=opt.lr)
 optimizer = torch.optim.Adam(net.parameters(), lr=opt.lr)
-
-
 # scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.8)
 criterion = nn.CrossEntropyLoss(weight)
 
-# ——_——_——_——_——_——_——_——————_——_——Encapsulating Models with DataParallel_——__——_
-# model.train()  # Change net to model
-#
-# net = net.to(device)
-# -----------------------------------
+
 def evalnet(net, signals, stages, sequences, epoch, plot, plot_result={}, save_file=None):
     net.eval()
     confusion_mat = torch.zeros((5,5),dtype=int).to('cuda:0')
