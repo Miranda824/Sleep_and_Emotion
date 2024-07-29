@@ -23,7 +23,6 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "0,1,2"  # Set the visible GPU device numbe
 emotion_model = load_model('F:/sleep/Sleep/emo_model/emotion_re_15surprise.h5', compile=False)
 
 
-
 opt = Options().getparse()
 localtime = time.asctime(time.localtime(time.time()))
 util.writelog('\n\n' + str(localtime) + '\n' + str(opt))
