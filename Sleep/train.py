@@ -5,8 +5,6 @@ from torch import nn
 import warnings
 from tqdm import tqdm
 warnings.filterwarnings("ignore")
-from torch.utils.data import DataLoader
-from torch.nn.parallel import DataParallel
 import os
 import util
 import transformer
@@ -14,11 +12,10 @@ import dataloader
 import statistics
 import heatmap
 from creatnet import CreatNet
-
 from options import Options
 from rocNpr import roc_plot, pr_plot
-# from simple_test import plot_embedding
 from tensorflow.keras.models import load_model
+
 if hasattr(torch.cuda, 'empty_cache'):
     torch.cuda.empty_cache()
 # Set visible GPU devices
@@ -129,27 +126,7 @@ def evalnet(net, signals, stages, sequences, epoch, plot, plot_result={}, save_f
     plot_result['test'].append(err)
     heatmap.draw(confusion_mat, name='test')
     print('recall,acc,sp,err,k: ' + str(statistics.result(confusion_mat)))
-    # Collect evaluation results
-    import json
-    evaluation_results = {
-        'recall': recall,
-        'accuracy': acc,
-        'specificity': sp,
-        'error_rate': err,
-        'k': k
-    }
-
-    # Save evaluation results to a text file
-    if save_file:
-         with open(save_file, 'w') as f:
-             for key, value in evaluation_results.items():
-                 f.write(f'{key}: {value}\n')
-         print(f"Evaluation results saved to {save_file}")
     return plot_result, confusion_mat
-
-
-# Define the file path to save the evaluation results
-save_file = 'evaluation_results.txt'
 
 
 # Call the evalnet function with the save_file parameter
@@ -158,7 +135,6 @@ save_file = 'evaluation_results.txt'
 
 print('begin to train ...')
 # First, initialize a 5*5 two-dimensional array final_confusion_mat and assign all its elements to 0, indicating the initial value of the 5-class confusion matrix to be calculated later.
-# save
 # Then opt.fold_num loops are performed, each of which loads the pre-trained model parameters and sets the model based on whether the GPU is used.
 # Next, an empty list confusion_mats is defined to store the confusion matrix results for each fold.
 
@@ -173,32 +149,22 @@ for fold in range(opt.fold_num):
     #     net.load_state_dict(torch.load('./checkpoints/pretrained/' + opt.dataset_name + '/' + opt.model_name + '.pth'))
     if not opt.no_cuda:
         net.cuda()
-    # #---------------------------------
-    # net = net.to(device)
-    # #--------------------------------
     plot_result = {'train': [1.], 'test': [1.]}
     confusion_mats = []
     plot = 'false'  # Save data in the last epoch to draw multiple roc, pr
-    # for epoch in range(opt.epochs):
+
     # Create a tqdm object for the current fold
     confusion_mat = torch.zeros((5,5),dtype=int).to('cuda:0')
     epochs_range = tqdm(range(opt.epochs), desc=f"Fold {fold + 1} Epochs", unit="epoch")
     for epoch in epochs_range:
         t1 = time.time()
-        # confusion_mat = np.zeros((5, 5), dtype=int)
+        confusion_mat = np.zeros((5, 5), dtype=int)
         print('fold:', fold + 1, 'epoch:', epoch + 1)
         net.train()
-        # #——_——_——_——_——_——_——_——————_——_——_——__——_
-        # model.train()  # Change net to model
-        # #-----------------------------------
         for i, sequence in enumerate(train_sequences[fold], 1):
-
             signal = transformer.ToInputShape(signals[sequence], opt.model_name, test_flag=False)
-
             signal, stage = transformer.ToTensor(signal, stages[sequence], no_cuda=opt.no_cuda)
-            
             out = net(signal)
-
 
 
             loss = criterion(out, stage)
@@ -239,7 +205,7 @@ for fold in range(opt.fold_num):
     final_confusion_mat += confusion_mats[pos].cpu().numpy()
     util.writelog('fold:' + str(fold + 1) + ' recall,acc,sp,err,k: ' + str(statistics.result(confusion_mats[pos])), True)
     print('------------------')
-    util.writelog('confusion_mat:\n' + str(confusion_mat))
+    util.writelog('confusion_mat:\n' + str(confusion_mats[pos].cpu().numpy()))
 
 
 util.writelog('final: ' + 'recall,acc,sp,err,k: ' + str(statistics.result(final_confusion_mat)), True)
