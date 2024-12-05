@@ -1,5 +1,3 @@
-import os
-import random
 import numpy as np
 import torch
 
@@ -12,7 +10,6 @@ def shuffledata(data,target):
     np.random.shuffle(data)
     np.random.set_state(state)
     np.random.shuffle(target)
-    # return data,target
 
 def batch_generator_subject(data,target,batchsize,shuffle = True):
     data_test = data[int(0.95*len(target)):]
@@ -74,9 +71,7 @@ def Balance_individualized_differences(signals,BID):# This function normalizes t
     return signals
 
 def ToTensor(data,target=None,no_cuda = False):# Function to convert Numpy arrays to PyTorch tensors
-    # print('data:',data.shape)
     if target is not None:
-        # data = torch.from_numpy(data).float()
         data = torch.Tensor(data).float()
         target = torch.from_numpy(target).long()
         if not no_cuda:
@@ -89,51 +84,16 @@ def ToTensor(data,target=None,no_cuda = False):# Function to convert Numpy array
             data = data.cuda()
         return data
 
-def random_transform_1d(data,finesize,test_flag):# Perform random transformations on 1D data
-    length = len(data)
-    if test_flag:
-        move = int((length-finesize)*0.5)
-        result = data[move:move+finesize]
-    else:
-        #random crop    
-        move = int((length-finesize)*random.random())
-        result = data[move:move+finesize]
-        #random flip
-        if random.random()<0.5:
-            result = result[::-1]
-        #random amp
-        result = result*random.uniform(0.8,1.2)
-    return result
-
-def random_transform_2d(img,finesize = (224,122),test_flag = True):
-    h,w = img.shape[:2]
-    if test_flag:
-        h_move = 2
-        w_move = int((w-finesize[1])*0.5)
-        result = img[h_move:h_move+finesize[0],w_move:w_move+finesize[1]]
-    else:
-        #random crop
-        h_move = int(10*random.random()) #do not loss low freq signal infos
-        w_move = int((w-finesize[1])*random.random())
-        result = img[h_move:h_move+finesize[0],w_move:w_move+finesize[1]]
-        #random flip
-        if random.random()<0.5:
-            result = result[:,::-1]
-        #random amp
-        result = result*random.uniform(0.9,1.1)+random.uniform(-0.05,0.05)
-    return result
-
-def ToInputShape(data,net_name,test_flag = False):
+def ToInputShape(data):
     data = data.astype(np.float32)
     batchsize=data.shape[0]
-    if net_name in['attNsoft1']:
-        result =[]
-        for i in range(0,batchsize):
-            randomdata=random_transform_1d(data[i][:3000],finesize = 2700,test_flag=test_flag)
-            result.append(randomdata)
-        result = np.array(result)
-        result = result.reshape(batchsize,1,2700)
-        result = np.concatenate([result,data[:,3000:].reshape(batchsize,1,-1)],axis=2)
-        result=torch.from_numpy(result)
+    result = []
+
+    for i in range(0,batchsize):
+        result.append(data[i][:3000])
+    result = np.array(result)
+    result = result.reshape(batchsize,1,3000)
+    result = np.concatenate([result,data[:,3000:].reshape(batchsize,1,-1)],axis=2)
+    result=torch.from_numpy(result)
 
     return result.to('cuda:0')
