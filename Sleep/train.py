@@ -87,7 +87,7 @@ def evalnet(net, signals, stages, sequences, epoch, plot, plot_result={}, save_f
 
     for i, sequence in enumerate(sequences, 1):
 
-        signal = transformer.ToInputShape(signals[sequence], opt.model_name, test_flag=True)
+        signal = transformer.ToInputShape(signals[sequence])
         signal, stage = transformer.ToTensor(signal, stages[sequence], no_cuda=opt.no_cuda)
 
         with torch.no_grad():
