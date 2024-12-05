@@ -5,7 +5,6 @@ from keras.utils.np_utils import to_categorical
 from sklearn.preprocessing import StandardScaler
 from keras.models import Sequential
 from keras.layers import Conv1D, BatchNormalization, Dense, Flatten, Dropout
-from sklearn.metrics import confusion_matrix, classification_report, accuracy_score
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
