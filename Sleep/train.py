@@ -14,6 +14,7 @@ from creatnet import CreatNet
 from options import Options
 from rocNpr import roc_plot, pr_plot
 from tensorflow.keras.models import load_model
+import pandas as pd
 warnings.filterwarnings("ignore")
 
 if hasattr(torch.cuda, 'empty_cache'):
@@ -188,3 +189,36 @@ statistics.stagefrommat(final_confusion_mat)
 heatmap.draw(final_confusion_mat, name='final_test')
 
 epochs_range.close()  # Close the tqdm object
+
+# Accuracy, Recall, Precision, F1-score calculation
+total_sum = np.sum(final_confusion_mat)
+print("The sum of all elements in the confusion matrix is:", total_sum)
+
+acc_N3 = 100 * (final_confusion_mat[0, 0] + np.sum(final_confusion_mat[1:, 1:])) / total_sum
+acc_N2 = 100 * (final_confusion_mat[1, 1] + np.sum(np.delete(np.delete(final_confusion_mat, 1, axis=0), 1, axis=1))) / total_sum
+acc_N1 = 100 * (final_confusion_mat[2, 2] + np.sum(np.delete(np.delete(final_confusion_mat, 2, axis=0), 2, axis=1))) / total_sum
+acc_R = 100 * (final_confusion_mat[3, 3] + np.sum(np.delete(np.delete(final_confusion_mat, 3, axis=0), 3, axis=1))) / total_sum
+acc_W = 100 * (final_confusion_mat[4, 4] + np.sum(np.delete(np.delete(final_confusion_mat, 4, axis=0), 4, axis=1))) / total_sum
+acc = np.array([acc_W, acc_N1, acc_N2, acc_N3, acc_R])
+
+recall = 100 * np.diag(final_confusion_mat) / final_confusion_mat.sum(axis=1)
+recall = recall[[4, 2, 1, 0, 3]]  # Adjust the order
+
+precision = 100 * np.diag(final_confusion_mat) / final_confusion_mat.sum(axis=0)
+precision = precision[[4, 2, 1, 0, 3]]  # Adjust the order
+
+f1_score = 2 * (precision * recall) / (precision + recall)
+
+# Create DataFrame to store the results
+df = pd.DataFrame({
+    'Category': ['W', 'N1', 'N2', 'N3', 'R'],
+    'Accuracy': acc,
+    'Recall': recall,
+    'Precision': precision,
+    'F1-score': f1_score
+})
+
+file_path = "results.xlsx"
+df.to_excel(file_path, index=False)
+print(df)
+print("Results saved to:", file_path)
