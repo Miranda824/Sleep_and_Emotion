@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import util
 import torch
-from torch import nn
+
 def stage(stages):
     #N3->0  N2->1  N1->2  REM->3  W->4
     stage_cnt=np.array([0,0,0,0,0])
@@ -11,40 +11,6 @@ def stage(stages):
     stage_cnt_per = stage_cnt/len(stages)
     util.writelog('statistics of dataset [S3 S2 S1 R W]: '+str(stage_cnt),True)
     return stage_cnt,stage_cnt_per
-
-def reversal_label(mat):
-    new_mat = np.zeros(mat.shape,dtype='int')
-    new_mat[0]=mat[4]
-    new_mat[1]=mat[2]
-    new_mat[2]=mat[1]
-    new_mat[3]=mat[0]
-    new_mat[4]=mat[3]
-
-    mat=new_mat.copy()
-
-    new_mat[:,0]=mat[:,4]
-    new_mat[:,1]=mat[:,2]
-    new_mat[:,2]=mat[:,1]
-    new_mat[:,3]=mat[:,0]
-    new_mat[:,4]=mat[:,3]
-
-    return new_mat
-
-def class_5to4(mat):
-    #[W N1 N2 N3 R] to [W N1+N2 N3 R]
-    new_mat=np.zeros((4,5),dtype='int')
-    new_mat[0] = mat[0]
-    new_mat[1] = mat[1]+mat[2]
-    new_mat[2] = mat[3]
-    new_mat[3] = mat[4]
-    mat = new_mat.copy()
-    new_mat=np.zeros((4,4),dtype='int')
-    new_mat[:,0] = mat[:,0]
-    new_mat[:,1] = mat[:,1]+mat[:,2]
-    new_mat[:,2] = mat[:,3]
-    new_mat[:,3] = mat[:,4]
-    return new_mat
-
 
 def Kappa(mat):
     mat=mat/10000 # avoid overflow
@@ -112,7 +78,6 @@ def show(plot_result,epoch):
     plt.legend(loc=1)
     plt.title('Running err.',fontsize='large')
     plt.savefig('./running_err.png')
-
 
 
 def main():
