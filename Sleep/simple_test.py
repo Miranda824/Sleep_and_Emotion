@@ -25,12 +25,7 @@ if not opt.no_cudnn:
 net.load_state_dict(torch.load('./transcheckpoint/' + 'attNsoft' + '.pth'))
 net.eval()
 
-#输入数据eeg为1维向量，将其reshape为1行n列的矩阵，其中n为数据长度。
-#使用transformer.ToInputShape函数对eeg进行预处理，将其转换为输入模型所需的形状。具体操作与实现与ToInputShape函数相同，此处不再赘述。
-#使用transformer.ToTensor函数将预处理后的数据转换为tensor类型，同时可选择是否将其放入GPU中进行计算。
-#将tensor类型的数据输入深度学习模型中，得到模型输出out。
-#对模型输出进行argmax操作，得到预测结果pred。
-#将预测结果和模型输出以元组形式返回。其中，预测结果pred为一个整数，表示eeg数据的预测分类结果；模型输出out为一个1行多列的numpy矩阵，表示eeg数据被预测为每个分类的概率。
+
 def runmodel(eeg):
     eeg = eeg.reshape(1, -1)
     eeg = transformer.ToInputShape(eeg, opt.model_name, test_flag=True)
