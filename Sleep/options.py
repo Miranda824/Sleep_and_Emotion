@@ -17,7 +17,7 @@ class Options():
         self.parser.add_argument('--lr', type=float, default=0.0003,help='learning rate')
         self.parser.add_argument('--cross_validation', type=str, default='k_fold',help='k_fold | subject')
         self.parser.add_argument('--BID', type=str, default='5_95_th',help='Balance individualized differences  5_95_th | median | zscore| None')
-        self.parser.add_argument('--fold_num', type=int, default=20,help='k-fold')
+        self.parser.add_argument('--fold_num', type=int, default=5,help='k-fold')
         self.parser.add_argument('--batchsize', type=int, default=32,help='batchsize')
         self.parser.add_argument('--dataset_dir', type=str, default='./datasets/sleep-edfx/',help='your dataset path')
         self.parser.add_argument('--dataset_name', type=str, default='sleep-edfx',help='Choose dataset sleep-edfx | sleep-edfx-8 | cc2018')
