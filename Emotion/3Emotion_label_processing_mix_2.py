@@ -10,7 +10,7 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 
 def process_label(y_valence, y_arousal, idx_valencemin1, idx_valencemax1, idx_arousalmin1, idx_arousalmax1,
-                  idx_valencemin2, idx_valencemax2, idx_arousalmin2, idx_arousalmax2):
+                                        idx_valencemin2, idx_valencemax2, idx_arousalmin2, idx_arousalmax2):
     condition_valence1 = np.logical_and(y_valence >= idx_valencemin1, y_valence < idx_valencemax1)
     condition_arousal1 = np.logical_and(y_arousal >= idx_arousalmin1, y_arousal < idx_arousalmax1)
 
