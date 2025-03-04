@@ -23,9 +23,9 @@ def del_UND(signals, stages):
 
 # Connect new signal and stage data with existing data
 def connectdata(signal, stage, signals=[], stages=[]):
-    if signals == []:
-        signals = signal.copy()
-        stages = stage.copy()
+    if len(signals) == 0:
+        signals = signal
+        stages = stage
     else:
         signals = np.concatenate((signals, signal), axis=0)
         stages = np.concatenate((stages, stage), axis=0)
